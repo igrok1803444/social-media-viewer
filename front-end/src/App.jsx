@@ -1,56 +1,90 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+const API = "http://localhost:8000";
 
 function App() {
+  const [token, setToken] = useState(null);
+  const [chats, setChats] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const login = async () => {
+    const res = await axios.post(`${API}/login`, {
+      username: "test",
+      password: "password",
+    });
+    setToken(res.data.access_token);
+    console.log(res);
+  };
+
+  const connectTelegram = async () => {
+    await axios.post(
+      `${API}/telegram/connect`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    loadChats();
+  };
+
+  const loadChats = async () => {
+    const res = await axios.get(`${API}/telegram/chats`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setChats(res.data);
+  };
+
+  const loadMessages = async (id) => {
+    setSelectedChat(id);
+    const res = await axios.get(`${API}/telegram/messages/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setMessages(res.data);
+  };
+
+  const logoutTelegram = async () => {
+    await axios.post(
+      `${API}/telegram/disconnect`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setChats([]);
+    setMessages([]);
+    setSelectedChat(null);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
+    <div>
+      <h1>Telegram Viewer</h1>
+      {!token && <button onClick={login}>Login</button>}
+      {token && <button onClick={connectTelegram}>Connect Telegram</button>}
+      {token && chats.length > 0 && (
+        <div>
+          <h2>Chats</h2>
+          <ul>
+            {chats.map((chat) => (
+              <li key={chat.id} onClick={() => loadMessages(chat.id)}>
+                {chat.title ||
+                  `${chat.first_name} ${(chat.last_name = null
+                    ? chat.last_name
+                    : "")}`}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {selectedChat && (
+        <div>
+          <h3>Messages in Chat {selectedChat}</h3>
+          <ul>
+            {messages.map((msg) => (
+              <li key={msg.id}>{msg.text}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {token && <button onClick={logoutTelegram}>Disconnect Telegram</button>}
     </div>
   );
 }
