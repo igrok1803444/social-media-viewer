@@ -5,9 +5,11 @@ import os
 
 load_dotenv()
 
-MONGO_URL = os.getenv('MONGO_URL')
-DB_NAME = os.getenv('DB_NAME')
+MONGO_URL = os.getenv("MONGO_URL")
+DB_NAME = os.getenv("DB_NAME")
 
+if not MONGO_URL or not DB_NAME:
+    raise Exception("MONGO_URL and DB_NAME must be set")
 
 try:
     client = AsyncIOMotorClient(MONGO_URL)
