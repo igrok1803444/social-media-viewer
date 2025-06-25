@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
 const API = "http://localhost:8000";
@@ -8,7 +8,6 @@ function App() {
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const login = async () => {
     const res = await axios.post(`${API}/login`, {
@@ -16,7 +15,6 @@ function App() {
       password: "password",
     });
     setToken(res.data.access_token);
-    console.log(res);
   };
 
   const connectTelegram = async () => {
@@ -65,10 +63,7 @@ function App() {
           <ul>
             {chats.map((chat) => (
               <li key={chat.id} onClick={() => loadMessages(chat.id)}>
-                {chat.title ||
-                  `${chat.first_name} ${(chat.last_name = null
-                    ? chat.last_name
-                    : "")}`}
+                {chat.title || chat.id}
               </li>
             ))}
           </ul>
