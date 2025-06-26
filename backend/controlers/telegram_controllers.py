@@ -156,7 +156,7 @@ async def disconnect(user_id: str, session_name: str):
         try:
             if client.is_connected:
                 await client.stop()
-        except Exception as e:
+        except Exception:
             print(f"[INFO] Client {key} вже був зупинений")
 
         del clients[key]  # видаляємо в будь-якому разі

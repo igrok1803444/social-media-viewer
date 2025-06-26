@@ -30,5 +30,5 @@ def decode_token(token: str):
         return payload.get("sub")
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
-    except:
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
