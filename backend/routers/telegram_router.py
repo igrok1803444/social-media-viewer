@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from auth import refresh_current_user
+from controlers.auth import get_current_user
 from controlers.telegram_controllers import (
     get_chats,
     disconnect,
@@ -19,55 +19,43 @@ security = HTTPBearer()
 
 @router.post("/connect")
 async def telegram_send_code(
-    data: Connect, token: HTTPAuthorizationCredentials = Depends(security)
+    data: Connect, user: HTTPAuthorizationCredentials = Depends(get_current_user)
 ):
-    user = await refresh_current_user(token.credentials)
     session_connect = await connect(user["_id"], data)
     return {"session_connect": session_connect, "refresh_user": user}
 
 
 @router.post("/verify-code")
-async def telegram_verify_code(
-    data: VerifyCode, token: HTTPAuthorizationCredentials = Depends(security)
-):
-    user = await refresh_current_user(token.credentials)
+async def telegram_verify_code(data: VerifyCode, user=Depends(get_current_user)):
     status = await verify_code(user["_id"], data)
-    return {"status": status["status"], "user": user}
+    return {"status": status.get("status")}
 
 
 @router.post("/sign-in-2fa")
-async def telegram_sign_in_2fa(
-    data: Verify2FA, token: HTTPAuthorizationCredentials = Depends(security)
-):
-    user = await refresh_current_user(token.credentials)
+async def telegram_sign_in_2fa(data: Verify2FA, user=Depends(get_current_user)):
     status = await sign_in_2fa(user["_id"], data)
-    return {"status": status["status"], "user": user}
+    return {"status": status.get("status")}
 
 
 @router.get("/chats")
-async def telegram_chats(
-    session_name: str = None, token: HTTPAuthorizationCredentials = Depends(security)
-):
-    user = await refresh_current_user(token.credentials)
+async def telegram_chats(session_name: str = None, user=Depends(get_current_user)):
     client = await get_active_client(user["_id"], session_name)
     chats = await get_chats(client)
-    return {"chats": chats, "user": user}
+    return {"chats": chats}
 
 
 @router.get("/messages/{chat_id}")
 async def telegram_chat_messages(
     chat_id: int,
     session_name: str = None,
-    token: HTTPAuthorizationCredentials = Depends(security),
+    user=Depends(get_current_user),
 ):
-    user = await refresh_current_user(token.credentials)
     client = await get_active_client(user["_id"], session_name)
     messages = await get_chat_messages(client, chat_id)
-    return {"messages": messages, "user": user}
+    return {"messages": messages}
 
 
 @router.post("/disconnect")
-async def telegram_disconnect(session_name: str = None, token=Depends(security)):
-    user = await refresh_current_user(token.credentials)
+async def telegram_disconnect(session_name: str = None, user=Depends(get_current_user)):
     status = await disconnect(user["_id"], session_name)
-    return {"status": status["status"], "user": user}
+    return {"status": status["status"]}

@@ -18,7 +18,8 @@ class Connect(BaseModel):
 class VerifyCode(BaseModel):
     session_name: Optional[str] = None
     phone_number: PhoneNumber
-    code: Annotated[str, StringConstraints(min_length=3)]
+    phone_code: Annotated[str, StringConstraints(min_length=3)]
+    phone_code_hash: str
 
     @field_validator("phone_number")
     def validate_phone(cls, v):

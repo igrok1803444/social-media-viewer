@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 from dotenv import load_dotenv
-
 import jwt
 import os
 
@@ -13,20 +12,45 @@ if not JWT_SECRET or not ALGORITHM:
     raise Exception("JWT_SECRET and ALGORITHM must be set")
 
 
-def set_token(id: str):
-    token = jwt.encode(
-        {"body": id, "exp": datetime.now(timezone.utc) + timedelta(hours=3)},
+def set_access_token(user_id: str):
+    access_token = jwt.encode(
+        {
+            "sub": user_id,
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=15),
+        },
         JWT_SECRET,
-        algorithms=[ALGORITHM],
+        algorithm=ALGORITHM,
     )
-    return token
+    return access_token
+
+
+def set_refresh_token(user_id: str):
+    refresh_token = jwt.encode(
+        {
+            "sub": user_id,
+            "exp": datetime.now(timezone.utc) + timedelta(days=7),
+        },
+        JWT_SECRET,
+        algorithm=ALGORITHM,
+    )
+    return refresh_token
 
 
 def decode_token(token: str):
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
-        return payload.get("body")
+        return payload.get("sub")
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+
+def decode_refresh_token(token: str):
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
+        return payload.get("sub")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")

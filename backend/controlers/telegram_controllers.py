@@ -36,14 +36,11 @@ def schedule_memory_cleanup(user_id: str, session_name: str, delay: int = 600):
 
 async def connect(user_id: str, body: Connect):
     session_name = body.session_name or f"tg_{secrets.token_hex(6)}"
+    print(session_name)
     phone_number = body.phone_number
     if not phone_number:
         raise HTTPException(status_code=400, detail="Phone is required")
     key = f"{user_id}:{session_name}"
-    client = Client(session_name, api_id=API_ID, api_hash=API_HASH)
-    await client.connect()
-    await client.send_code(phone_number)
-    clients[key] = client
     try:
         await db["telegram_sessions"].insert_one(
             {
@@ -55,28 +52,44 @@ async def connect(user_id: str, body: Connect):
         )
     except DuplicateKeyError:
         raise HTTPException(status_code=400, detail="Session name already registered")
-    return {"status": "code_sent", "session_name": session_name}
+    client = Client(session_name, api_id=API_ID, api_hash=API_HASH)
+    await client.connect()
+    try:
+        response = await client.send_code(phone_number)
+    except:
+        raise HTTPException(status_code=500, detail="Problem with code sent")
+    clients[key] = client
+
+    return {
+        "status": "code_sent",
+        "session_name": session_name,
+        "phone_code_hash": response.phone_code_hash,
+    }
 
 
 async def verify_code(user_id: str, data: VerifyCode):
     phone_number = data.phone_number
-    code = data.code
+    phone_code = data.phone_code
+    phone_code_hash = data.phone_code_hash
     session_name = data.session_name
-    if not phone_number or not code:
-        raise HTTPException(status_code=400, detail="Phone and code are required")
+    if not phone_number or not phone_code or not phone_code_hash:
+        raise HTTPException(
+            status_code=400, detail="Phone, phone code hash and phone_code are required"
+        )
     if not session_name:
         session_name = await find_session_name(user_id)
+        print(session_name)
     key = f"{user_id}:{session_name}"
     client = clients.get(key) or clients.get(session_name)
     if not client:
-        return {"error": "No session found"}
+        raise HTTPException(status_code=404, detail="No session found")
     try:
-        await client.sign_in(phone_number, code)
+        await client.sign_in(phone_number, phone_code_hash, phone_code)
     except SessionPasswordNeeded:
-        return {"error": "2FA enabled, password required"}
+        raise HTTPException(status_code=400, detail="2FA enabled, password required")
     session_string = await client.export_session_string()
     encrypted = encrypt_string(session_string)
-    await db["telegram_sessions"].update_one(
+    await db["telegram_sessions"].find_one_and_update(
         {"user_id": user_id, "session_name": session_name},
         {"$set": {"session": encrypted, "status": "connected"}},
     )
@@ -122,7 +135,12 @@ async def get_active_client(user_id: str, session_name: str = None):
     if not record or not record.get("session"):
         raise HTTPException(status_code=404, detail="No Telegram session found")
     session_string = decrypt_string(record["session"])
-    client = Client(session_string, api_id=API_ID, api_hash=API_HASH)
+    client = Client(
+        ":memory:",
+        api_id=API_ID,
+        api_hash=API_HASH,
+        session_string=session_string,
+    )
     await client.start()
     clients[key] = client
     return client
@@ -144,7 +162,8 @@ async def get_chats(client: Client):
 
 async def get_chat_messages(client: Client, chat_id: int):
     messages = []
-    async for message in client.get_chat_history(chat_id, limit=100):
+    async for i in client.get_chat_history(chat_id, limit=100):
+        message = {"id": i.id}
         messages.append(message)
     return messages
 
