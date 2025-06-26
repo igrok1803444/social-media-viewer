@@ -3,8 +3,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from controlers.auth import (
     login_user,
     register_user,
-    refresh_token,
     logout_user,
+    get_current_user,
 )
 from models.user_models import UserCreate, UserLogin
 
@@ -26,9 +26,9 @@ async def login(data: UserLogin):
 
 @router.post("/refresh")
 async def set_new_refresh_token(
-    token: HTTPAuthorizationCredentials = Depends(security),
+    user=Depends(get_current_user),
 ):
-    return await refresh_token(token.credentials)
+    return user
 
 
 @router.post("/logout")

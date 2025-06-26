@@ -26,8 +26,3 @@ class VerifyCode(BaseModel):
         if not v.startswith("+") or not v[1:].isdigit():
             raise ValueError("Phone number must start with + and contain only digits")
         return v
-
-
-class Verify2FA(BaseModel):
-    session_name: Optional[str] = None
-    password: Annotated[str, StringConstraints(min_length=6)]

@@ -1,0 +1,15 @@
+.chat_wrap {
+  flex: 1;
+
+  box-sizing: border-box;
+  display: flex;
+}
+.chat_list_wrap {
+  width: 20%;
+  height: 100%;
+  overflow: auto;
+}
+.info_wrap {
+  width: 80%;
+  height: 100%;
+}

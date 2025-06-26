@@ -6,9 +6,7 @@ from pymongo.errors import DuplicateKeyError
 from pymongo import ReturnDocument
 from helpers.tokens import (
     decode_token,
-    decode_refresh_token,
     set_access_token,
-    set_refresh_token,
 )
 from helpers.passwords import hash_password, match_password
 from bson import ObjectId
@@ -20,11 +18,11 @@ async def register_user(user: UserCreate):
     user.password = hash_password(user.password)
     try:
         response = await db["users"].insert_one(user.model_dump())
-        access_token = set_access_token(response.inserted_id)
-        refresh_token = set_refresh_token(response.inserted_id)
+        access_token = set_access_token(str(response.inserted_id))
+
         update_response = await db["users"].find_one_and_update(
             {"_id": response.inserted_id},
-            {"$set": {"access_token": access_token, "refresh_token": refresh_token}},
+            {"$set": {"access_token": access_token}},
             return_document=ReturnDocument.AFTER,
         )
         update_response["_id"] = str(update_response["_id"])
@@ -34,12 +32,13 @@ async def register_user(user: UserCreate):
 
         return {
             "access_token": access_token,
-            "refresh_token": refresh_token,
             "token_type": "bearer",
             "user": update_response,
         }
     except DuplicateKeyError:
         raise HTTPException(status_code=400, detail="Email already registered")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
 async def login_user(user: UserLogin):
@@ -50,10 +49,10 @@ async def login_user(user: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     user_id = str(response["_id"])
     access_token = set_access_token(user_id)
-    refresh_token = set_refresh_token(user_id)
+
     await db["users"].find_one_and_update(
         {"_id": response["_id"]},
-        {"$set": {"access_token": access_token, "refresh_token": refresh_token}},
+        {"$set": {"access_token": access_token}},
     )
     response["_id"] = user_id
     response.pop("access_token", None)
@@ -61,7 +60,6 @@ async def login_user(user: UserLogin):
     response.pop("password", None)
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": response,
     }
@@ -80,30 +78,6 @@ async def get_current_user(
     user.pop("access_token", None)
     user.pop("refresh_token", None)
     return user
-
-
-async def refresh_token(old_refresh_token: str):
-    if not old_refresh_token:
-        raise HTTPException(status_code=400, detail="Refresh token missing")
-    user_id = decode_refresh_token(old_refresh_token)
-    new_access_token = set_access_token(user_id)
-    await db["users"].find_one_and_update(
-        {
-            "_id": ObjectId(user_id),
-            "access_token": {"$ne": None},
-            "refresh_token": {"$ne": None},
-        },
-        {
-            "$set": {
-                "access_token": new_access_token,
-            }
-        },
-    )
-    return {
-        "access_token": new_access_token,
-        "refresh_token": old_refresh_token,
-        "token_type": "bearer",
-    }
 
 
 async def logout_user(token: str):

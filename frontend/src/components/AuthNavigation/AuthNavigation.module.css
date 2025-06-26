@@ -1,0 +1,32 @@
+.nav {
+  display: flex;
+  column-gap: 20px;
+  align-items: baseline;
+
+  height: 100%;
+}
+.logout_btn {
+  display: block;
+
+  padding: 16px;
+
+  border: 1px solid var(--primary-border-color);
+  border-radius: 16px;
+
+  background-color: var(--inactive-button-background);
+
+  font-size: 1.2rem;
+  color: var(--inactive-button-text);
+
+  transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease,
+    color 0.3s ease, fill 0.3s ease;
+  cursor: pointer;
+}
+.logout_btn:hover,
+.logout_btn:focus {
+  opacity: 1;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+  background-color: var(--active-button-background);
+  color: var(--active-button-text);
+}

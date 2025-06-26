@@ -6,11 +6,10 @@ from controlers.telegram_controllers import (
     disconnect,
     connect,
     verify_code,
-    sign_in_2fa,
     get_active_client,
     get_chat_messages,
 )
-from models.telegram_models import Connect, VerifyCode, Verify2FA
+from models.telegram_models import Connect, VerifyCode
 
 router = APIRouter(prefix="/telegram", tags=["Telegram"])
 
@@ -28,12 +27,6 @@ async def telegram_send_code(
 @router.post("/verify-code")
 async def telegram_verify_code(data: VerifyCode, user=Depends(get_current_user)):
     status = await verify_code(user["_id"], data)
-    return {"status": status.get("status")}
-
-
-@router.post("/sign-in-2fa")
-async def telegram_sign_in_2fa(data: Verify2FA, user=Depends(get_current_user)):
-    status = await sign_in_2fa(user["_id"], data)
     return {"status": status.get("status")}
 
 
