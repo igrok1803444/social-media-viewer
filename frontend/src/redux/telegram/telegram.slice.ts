@@ -74,6 +74,8 @@ const telegramSlice = createSlice({
       .addCase(telegramDisconnect.fulfilled, (state) => {
         state.loading = false;
         state.isConnected = false;
+        state.messages = [];
+        state.chats = [];
       });
   },
 });
