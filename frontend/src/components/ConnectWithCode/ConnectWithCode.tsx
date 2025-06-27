@@ -36,7 +36,7 @@ const ConnectWithCode = () => {
       dispatch(telegramConnect(sendConnect));
     } else {
       dispatch(telegramConfirmCode(sendConfirm));
-      navigate("chats");
+      navigate("/chats");
     }
   };
   return (

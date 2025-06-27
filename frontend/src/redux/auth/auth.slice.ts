@@ -61,8 +61,8 @@ const authSlice = createSlice({
       .addCase(logout.rejected, (state) => {
         state.isLoading = false;
       })
-      .addCase(logout.fulfilled, (state) => {
-        state = initialState;
+      .addCase(logout.fulfilled, () => {
+        return initialState;
       });
   },
 });
