@@ -126,7 +126,7 @@ async def get_chat_messages(client: Client, chat_id: int):
     messages = []
     async for dialog in client.get_dialogs():
         break
-    async for i in client.get_chat_history(chat_id, limit=100):
+    async for i in client.get_chat_history(chat_id):
         message = {
             "id": i.id,
             "from_user": {
