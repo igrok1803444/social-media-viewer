@@ -1,46 +1,83 @@
-# Getting Started with Create React App and Redux
+# Social Media Viewer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app), using the [Redux](https://redux.js.org/) and [Redux Toolkit](https://redux-toolkit.js.org/) template.
+A full-stack web application to connect, view, and interact with Telegram chats and messages using a FastAPI backend and a React frontend.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Features
 
-### `npm start`
+- 🔐 User registration & authentication
+- 🤖 Connect Telegram account
+- 💬 View Telegram chats and messages
+- 📥 Load chat history
+- 📤 Send messages (optional)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠 Tech Stack
 
-### `npm test`
+- **Frontend:** React + Redux Toolkit + TypeScript
+- **Backend:** FastAPI + Motor (MongoDB)
+- **Telegram API:** Pyrogram
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## ⚙️ Requirements
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Python 3.10+
+- Node.js 16+
+- MongoDB
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📦 Installation & Setup
 
-### `npm run eject`
+### 🔧 Backend (FastAPI)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Create .env file in backend/
+cp .env.example .env  # or create manually
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# Run server
+uvicorn main:app --reload
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 💻 Frontend (React)
 
-## Learn More
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The frontend will be available at `http://localhost:5173`
+The backend (API) will be available at `http://localhost:8000`
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
+
+## 🔐 Environment Variables
+
+### `.env` for backend
+
+```
+MONGO_URL=mongodb://localhost:27017
+DB_NAME=social-media-viewer
+API_HASH=your_telegram_api_hash
+API_ID=your_telegram_api_id
+SECRET_KEY=your_secret_key
+```
+
+---
+
+## 🧪 Optional: Build Frontend
+
+```bash
+npm run build
+```
+
+---
