@@ -25,7 +25,7 @@ A full-stack web application to connect, view, and interact with Telegram chats 
 ## ⚙️ Requirements
 
 - Python 3.10+
-- Node.js 16+
+- Node.js 18+
 - MongoDB
 
 ---
